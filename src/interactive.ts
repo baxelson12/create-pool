@@ -274,11 +274,11 @@ export default async function main() {
   // --- Execute Foundry Script ---
   s.start('Executing Foundry script to create the pool...');
   try {
-    const poolAddress = await runFoundryScript(config as PoolCreationConfig);
+    const poolData = await runFoundryScript(config as PoolCreationConfig);
     s.stop('Foundry script executed successfully!');
     p.outro(
       color.green(
-        `🎉 Pool created! Address: ${color.underline(color.yellow(poolAddress))}`
+        `🎉 Pool created! Transaction: ${color.underline(color.yellow(config.etherscanRoot + '/' + poolData.hash))}`
       )
     );
   } catch (error) {

@@ -1,29 +1,12 @@
+import { execSync } from 'node:child_process';
+import { type Log, decodeEventLog, getEventSelector } from 'viem';
 import {
   priceToSqrtPriceX96,
   sqrtPriceX96ToPrice,
 } from './utils/price-to-sqrtX96';
 import { sortAddresses } from './utils/sort-addresses';
-
-/**
- * Simulates a time-consuming asynchronous operation.
- * @param {number} duration - The duration to wait in milliseconds.
- * @param {boolean} shouldFail - Whether the task should simulate a failure.
- * @returns {Promise<void>}
- */
-const simulateAsyncTask = (
-  duration: number = 1500,
-  shouldFail: boolean = false
-): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (shouldFail) {
-        reject(new Error('Simulated task failure.'));
-      } else {
-        resolve();
-      }
-    }, duration);
-  });
-};
+import type { PoolCreationConfig } from './validation';
+import { INITIALIZE_EVENT_ABI } from './constants/events';
 
 type SortedCurrencies = {
   sortedC0Address: string;
@@ -67,15 +50,34 @@ export const reverseAndConfirmPrice = async (
   return Math.abs(originalPriceRatio - inversePriceRatio) < 0.1;
 };
 
-export const runFoundryScript = async (config: unknown): Promise<string> => {
-  await simulateAsyncTask(2500);
-  // Real implementation: execute a foundry script with the config
-  // and return the new pool address
-  const mockPoolAddress =
-    '0x' +
-    Array(40)
-      .fill(0)
-      .map(() => Math.floor(Math.random() * 16).toString(16))
-      .join('');
-  return mockPoolAddress;
+export const runFoundryScript = async (config: PoolCreationConfig) => {
+  const sig =
+    'run(address, (address, address, uint160, uint24, int24, address))';
+  const args = [
+    config.poolManager,
+    `"(${config.sortedC0Address},${config.sortedC1Address},${config.sqrtPriceX96},${config.fee},${config.tickSpacing},${config.hooksAddress})"`,
+  ].join(' ');
+
+  const output = execSync(
+    `forge script ./script/CreatePool.s.sol:CreatePool --broadcast --json --rpc-url ${config.rpc} --private-key ${config.privateKey} --sig "${sig}" ${args}`,
+    { cwd: './contracts', encoding: 'utf-8' }
+  );
+
+  const jsonOutput = JSON.parse(output) as {
+    logs: Log[];
+    receipts: { transactionHash: string }[];
+  };
+  const initializeEventSelector = getEventSelector(INITIALIZE_EVENT_ABI[0]);
+  const log = jsonOutput.logs.find(
+    (log) => log.topics[0] === initializeEventSelector
+  );
+  if (!log)
+    throw new Error('Initialize event log not found in transaction receipt.');
+  const decoded = decodeEventLog({
+    abi: INITIALIZE_EVENT_ABI,
+    data: log.data,
+    topics: log.topics,
+  });
+
+  return { ...decoded.args, hash: jsonOutput.receipts[0]!.transactionHash };
 };
