@@ -14,7 +14,7 @@ import {
 const validateWithZod = (schema: z.ZodType<any, any>) => (value: any) => {
   const result = schema.safeParse(value);
   if (!result.success) {
-    return result.error.issues.map(v => v.message).join("\n")
+    return result.error.issues.map((v) => v.message).join('\n');
   }
 };
 
@@ -23,7 +23,9 @@ export default async function main() {
   p.intro(color.bgCyan(color.black(' Uniswap v4 Pool Creator ')));
 
   // Use Partial to allow building the config object incrementally
-  const config: Partial<PoolCreationConfig & { sortedC0Address: string; sortedC1Address: string; }> = {};
+  const config: Partial<
+    PoolCreationConfig & { sortedC0Address: string; sortedC1Address: string }
+  > = {};
 
   // --- Group 1: Addresses and Prices ---
   const initialDetails = await p.group(
@@ -35,7 +37,8 @@ export default async function main() {
         }),
       currency0Address: () =>
         p.text({
-          message: 'Enter the contract address for the first token (Currency0):',
+          message:
+            'Enter the contract address for the first token (Currency0):',
           placeholder: '0x...',
           validate: validateWithZod(poolCreationSchema.shape.currency0Address),
         }),
@@ -46,12 +49,15 @@ export default async function main() {
           validate: (val) => {
             const numVal = Number(val);
             if (isNaN(numVal)) return 'Please enter a valid number.';
-            return validateWithZod(poolCreationSchema.shape.currency0Price)(numVal);
+            return validateWithZod(poolCreationSchema.shape.currency0Price)(
+              numVal
+            );
           },
         }),
       currency1Address: () =>
         p.text({
-          message: 'Enter the contract address for the second token (Currency1):',
+          message:
+            'Enter the contract address for the second token (Currency1):',
           placeholder: '0x...',
           validate: validateWithZod(poolCreationSchema.shape.currency1Address),
         }),
@@ -62,7 +68,9 @@ export default async function main() {
           validate: (val) => {
             const numVal = Number(val);
             if (isNaN(numVal)) return 'Please enter a valid number.';
-            return validateWithZod(poolCreationSchema.shape.currency1Price)(numVal);
+            return validateWithZod(poolCreationSchema.shape.currency1Price)(
+              numVal
+            );
           },
         }),
     },
@@ -80,13 +88,19 @@ export default async function main() {
   // --- Processing Steps ---
   try {
     s.start('1. Sorting currencies by address...');
-    const { sortedC0Address, sortedC1Address } = await sortCurrencies(config.currency0Address!, config.currency1Address!);
+    const { sortedC0Address, sortedC1Address } = await sortCurrencies(
+      config.currency0Address!,
+      config.currency1Address!
+    );
     config.sortedC0Address = sortedC0Address;
     config.sortedC1Address = sortedC1Address;
     s.stop('Currencies sorted.');
 
     s.start('2. Calculating price ratio...');
-    const priceRatio = await calculatePrice(config.currency0Price!, config.currency1Price!);
+    const priceRatio = await calculatePrice(
+      config.currency0Price!,
+      config.currency1Price!
+    );
     s.stop(`Price ratio calculated: ${priceRatio.toFixed(4)}`);
 
     s.start('3. Calculating SqrtPriceX96...');
@@ -96,80 +110,85 @@ export default async function main() {
     s.start('4. Verifying price conversion...');
     const reversedPrice = await reverseAndConfirmPrice(sqrtPriceX96);
     s.stop(`Price verified. Reversed: ~${reversedPrice.toFixed(4)}`);
-
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+    const message =
+      error instanceof Error ? error.message : 'An unknown error occurred.';
     p.cancel(`An error occurred during processing: ${message}`);
     process.exit(1);
   }
 
   // --- Group 2: Pool Parameters ---
-  const poolParams = await p.group({
-    fee: async () => {
-      let otherFee: string | symbol;
-      let fee = await p.select({
-        message: 'Select the pool fee:',
-        options: [
-          { value: "100", label: '0.01%' },
-          { value: "500", label: '0.05%' },
-          { value: "3000", label: '0.30%' },
-          { value: "10000", label: '1.00%' },
-          { value: 'other', label: 'Other...' },
-        ],
-      });
-      if (fee === 'other') {
-        otherFee = await p.text({
-          message: 'Enter a custom fee value (e.g., 5% = 50000):',
-          placeholder: 'e.g., 50000',
-          validate: (val) => {
-            const numVal = Number(val);
-            if (isNaN(numVal)) return 'Please enter a valid number.';
-            return validateWithZod(poolCreationSchema.shape.fee)(numVal);
-          },
+  const poolParams = await p.group(
+    {
+      fee: async () => {
+        let otherFee: string | symbol;
+        let fee = await p.select({
+          message: 'Select the pool fee:',
+          options: [
+            { value: '100', label: '0.01%' },
+            { value: '500', label: '0.05%' },
+            { value: '3000', label: '0.30%' },
+            { value: '10000', label: '1.00%' },
+            { value: 'other', label: 'Other...' },
+          ],
         });
-        return otherFee;
-      }
-      return fee;
-    },
-    tickSpacing: async () => {
-      let otherTick: string | symbol;
-      let tick = await p.select({
-        message: 'Select the tick spacing:',
-        options: [
-          { value: "1", label: '1' },
-          { value: "10", label: '10' },
-          { value: "60", label: '60' },
-          { value: "200", label: '200' },
-          { value: 'other', label: 'Other...' },
-        ],
-      });
-      if (tick === 'other') {
-        otherTick = await p.text({
-          message: 'Enter a custom tick spacing value:',
-          placeholder: 'e.g., 100',
-          validate: (val) => {
-            const numVal = Number(val);
-            if (isNaN(numVal)) return 'Please enter a valid number.';
-            return validateWithZod(poolCreationSchema.shape.tickSpacing)(numVal);
-          },
+        if (fee === 'other') {
+          otherFee = await p.text({
+            message: 'Enter a custom fee value (e.g., 5% = 50000):',
+            placeholder: 'e.g., 50000',
+            validate: (val) => {
+              const numVal = Number(val);
+              if (isNaN(numVal)) return 'Please enter a valid number.';
+              return validateWithZod(poolCreationSchema.shape.fee)(numVal);
+            },
+          });
+          return otherFee;
+        }
+        return fee;
+      },
+      tickSpacing: async () => {
+        let otherTick: string | symbol;
+        let tick = await p.select({
+          message: 'Select the tick spacing:',
+          options: [
+            { value: '1', label: '1' },
+            { value: '10', label: '10' },
+            { value: '60', label: '60' },
+            { value: '200', label: '200' },
+            { value: 'other', label: 'Other...' },
+          ],
         });
-        return otherTick;
-      }
-      return tick;
+        if (tick === 'other') {
+          otherTick = await p.text({
+            message: 'Enter a custom tick spacing value:',
+            placeholder: 'e.g., 100',
+            validate: (val) => {
+              const numVal = Number(val);
+              if (isNaN(numVal)) return 'Please enter a valid number.';
+              return validateWithZod(poolCreationSchema.shape.tickSpacing)(
+                numVal
+              );
+            },
+          });
+          return otherTick;
+        }
+        return tick;
+      },
+      hooksAddress: () =>
+        p.text({
+          message: 'Enter the hooks contract address (or leave for none):',
+          initialValue: '0x0000000000000000000000000000000000000000',
+          validate: validateWithZod(poolCreationSchema.shape.hooksAddress),
+        }),
     },
-    hooksAddress: () => p.text({
-      message: 'Enter the hooks contract address (or leave for none):',
-      initialValue: '0x0000000000000000000000000000000000000000',
-      validate: validateWithZod(poolCreationSchema.shape.hooksAddress),
-    }),
-  }, {
-    onCancel: () => {
-      p.cancel('Operation cancelled.');
-      process.exit(0);
-    },
-  });
+    {
+      onCancel: () => {
+        p.cancel('Operation cancelled.');
+        process.exit(0);
+      },
+    }
+  );
   Object.assign(config, poolParams);
-
 
   // --- Final Confirmation ---
   p.note(`
@@ -198,10 +217,15 @@ export default async function main() {
   try {
     const poolAddress = await runFoundryScript(config as PoolCreationConfig);
     s.stop('Foundry script executed successfully!');
-    p.outro(color.green(`🎉 Pool created! Address: ${color.underline(color.yellow(poolAddress))}`));
+    p.outro(
+      color.green(
+        `🎉 Pool created! Address: ${color.underline(color.yellow(poolAddress))}`
+      )
+    );
   } catch (error) {
     s.stop('Failed to create pool.', 1);
-    const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+    const message =
+      error instanceof Error ? error.message : 'An unknown error occurred.';
     p.cancel(`An error occurred: ${message}`);
   }
 }
