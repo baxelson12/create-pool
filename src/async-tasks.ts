@@ -1,3 +1,9 @@
+import {
+  priceToSqrtPriceX96,
+  sqrtPriceX96ToPrice,
+} from './utils/price-to-sqrtX96';
+import { sortAddresses } from './utils/sort-addresses';
+
 /**
  * Simulates a time-consuming asynchronous operation.
  * @param {number} duration - The duration to wait in milliseconds.
@@ -28,35 +34,37 @@ export const sortCurrencies = async (
   c0Addr: string,
   c1Addr: string
 ): Promise<SortedCurrencies> => {
-  await simulateAsyncTask();
-  // In a real implementation, this would return the sorted addresses
-  if (c1Addr.toLowerCase() < c0Addr.toLowerCase()) {
-    return { sortedC0Address: c1Addr, sortedC1Address: c0Addr };
-  }
-  return { sortedC0Address: c0Addr, sortedC1Address: c1Addr };
+  const [sortedC0Address, sortedC1Address] = sortAddresses(c0Addr, c1Addr);
+  return { sortedC0Address, sortedC1Address };
 };
 
 export const calculatePrice = async (
   c0Price: number,
   c1Price: number
 ): Promise<number> => {
-  await simulateAsyncTask();
   return c0Price / c1Price;
 };
 
-export const getSqrtPriceX96 = async (price: number): Promise<number> => {
-  await simulateAsyncTask();
-  // Real implementation: convert price to sqrtPriceX96 format
-  return Math.sqrt(price) * 2 ** 96;
+export const getSqrtPriceX96 = async (
+  price: number,
+  token0Decimals: number,
+  token1Decimals: number
+): Promise<bigint> => {
+  return priceToSqrtPriceX96(price, token0Decimals, token1Decimals);
 };
 
 export const reverseAndConfirmPrice = async (
-  sqrtPriceX96: number
-): Promise<number> => {
-  await simulateAsyncTask();
-  // Real implementation: convert back and check for precision loss
-  const reversedPrice = (sqrtPriceX96 / 2 ** 96) ** 2;
-  return reversedPrice;
+  originalPriceRatio: number,
+  sqrtPriceX96: bigint,
+  token0Decimals: number,
+  token1Decimals: number
+): Promise<boolean> => {
+  const inversePriceRatio = sqrtPriceX96ToPrice(
+    sqrtPriceX96,
+    token0Decimals,
+    token1Decimals
+  );
+  return Math.abs(originalPriceRatio - inversePriceRatio) < 0.1;
 };
 
 export const runFoundryScript = async (config: unknown): Promise<string> => {

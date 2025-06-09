@@ -27,20 +27,55 @@ export default async function main() {
     PoolCreationConfig & { sortedC0Address: string; sortedC1Address: string }
   > = {};
 
+  // --- Group 0: Network
+  const networkingParams = await p.group({
+    privateKey: () =>
+      p.password({
+        message: 'Enter the private key for the executing wallet:',
+        validate: validateWithZod(poolCreationSchema.shape.privateKey),
+      }),
+    rpc: () =>
+      p.text({
+        message: 'Enter the deployment RPC URL:',
+        placeholder: 'http://localhost:8545',
+        validate: validateWithZod(poolCreationSchema.shape.rpc),
+      }),
+    etherscanRoot: () =>
+      p.text({
+        message: 'Enter the root URL for block scanner:',
+        placeholder: 'https://etherscan.io',
+        validate: validateWithZod(poolCreationSchema.shape.etherscanRoot),
+      }),
+    poolManager: () =>
+      p.text({
+        message: 'Enter the deployment address for PoolManager:',
+        placeholder: '0x...',
+        validate: validateWithZod(poolCreationSchema.shape.poolManager),
+      }),
+  });
+  Object.assign(config, networkingParams);
+
   // --- Group 1: Addresses and Prices ---
   const initialDetails = await p.group(
     {
-      privateKey: () =>
-        p.password({
-          message: 'Enter the private key for the executing wallet:',
-          validate: validateWithZod(poolCreationSchema.shape.privateKey),
-        }),
       currency0Address: () =>
         p.text({
           message:
             'Enter the contract address for the first token (Currency0):',
           placeholder: '0x...',
           validate: validateWithZod(poolCreationSchema.shape.currency0Address),
+        }),
+      currency0Decimals: () =>
+        p.text({
+          message: 'Enter the number of decimals for Currency0',
+          placeholder: '18',
+          validate: (val) => {
+            const numVal = Number(val);
+            if (isNaN(numVal)) return 'Please enter a valid number.';
+            return validateWithZod(poolCreationSchema.shape.currency0Decimals)(
+              numVal
+            );
+          },
         }),
       currency0Price: () =>
         p.text({
@@ -60,6 +95,18 @@ export default async function main() {
             'Enter the contract address for the second token (Currency1):',
           placeholder: '0x...',
           validate: validateWithZod(poolCreationSchema.shape.currency1Address),
+        }),
+      currency1Decimals: () =>
+        p.text({
+          message: 'Enter the number of decimals for Currency1',
+          placeholder: '18',
+          validate: (val) => {
+            const numVal = Number(val);
+            if (isNaN(numVal)) return 'Please enter a valid number.';
+            return validateWithZod(poolCreationSchema.shape.currency1Decimals)(
+              numVal
+            );
+          },
         }),
       currency1Price: () =>
         p.text({
@@ -104,12 +151,24 @@ export default async function main() {
     s.stop(`Price ratio calculated: ${priceRatio.toFixed(4)}`);
 
     s.start('3. Calculating SqrtPriceX96...');
-    const sqrtPriceX96 = await getSqrtPriceX96(priceRatio);
+    const sqrtPriceX96 = await getSqrtPriceX96(
+      priceRatio,
+      config.currency0Decimals!,
+      config.currency1Decimals!
+    );
     s.stop('SqrtPriceX96 calculated.');
 
     s.start('4. Verifying price conversion...');
-    const reversedPrice = await reverseAndConfirmPrice(sqrtPriceX96);
-    s.stop(`Price verified. Reversed: ~${reversedPrice.toFixed(4)}`);
+    const reversedPriceConfirmation = await reverseAndConfirmPrice(
+      priceRatio,
+      sqrtPriceX96,
+      config.currency0Decimals!,
+      config.currency1Decimals!
+    );
+    if (!reversedPriceConfirmation)
+      throw new Error('Inverse sqrtPriceX96 does not match original input.');
+    config.sqrtPriceX96 = sqrtPriceX96;
+    s.stop(`Price verified.`);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'An unknown error occurred.';

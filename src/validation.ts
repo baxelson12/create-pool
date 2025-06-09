@@ -10,6 +10,12 @@ export const poolCreationSchema = z.object({
   privateKey: z.string().min(1, { message: 'Private key cannot be empty.' }),
   currency0Address: ethAddressSchema,
   currency1Address: ethAddressSchema,
+  currency0Decimals: z
+    .number()
+    .positive({ message: 'Decimals must be a positive number.' }),
+  currency1Decimals: z
+    .number()
+    .positive({ message: 'Decimals must be a positive number.' }),
   currency0Price: z
     .number()
     .positive({ message: 'Price must be a positive number.' }),
@@ -25,6 +31,12 @@ export const poolCreationSchema = z.object({
     .int()
     .positive({ message: 'Tick spacing must be a positive integer.' }),
   hooksAddress: ethAddressSchema,
+  rpc: z.string().url({ message: 'Please enter a valid RPC URL.' }),
+  etherscanRoot: z
+    .string()
+    .url({ message: 'Please enter a valid block scanner root URL.' }),
+  sqrtPriceX96: z.bigint(),
+  poolManager: ethAddressSchema,
 });
 
 // We can infer the TypeScript type directly from the Zod schema
