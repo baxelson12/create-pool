@@ -73,6 +73,16 @@ const argv = yargs(process.argv.splice(2))
           type: 'number',
           demandOption: true,
         })
+        .option('currency0Decimals', {
+          describe: 'The number of decimals for currency0',
+          type: 'number',
+          demandOption: true,
+        })
+        .option('currency1Decimals', {
+          describe: 'The number of decimals for currency1',
+          type: 'number',
+          demandOption: true,
+        })
         .option('fee', {
           alias: 'f',
           describe:
@@ -90,7 +100,24 @@ const argv = yargs(process.argv.splice(2))
           alias: 'H',
           describe: 'Optional: Contract address for hooks',
           type: 'string',
-          // No `demandOption: true` because it is optional
+          // It's optional, so no demandOption. We can add a default.
+          default: '0x0000000000000000000000000000000000000000',
+        })
+        .option('rpc', {
+          describe: 'The RPC URL for the target network',
+          type: 'string',
+          demandOption: true,
+        })
+        .option('etherscanRoot', {
+          describe:
+            'The root URL for the block explorer (e.g., "https://etherscan.io")',
+          type: 'string',
+          demandOption: true,
+        })
+        .option('poolManager', {
+          describe: 'Address of the Uniswap V4 PoolManager contract',
+          type: 'string',
+          demandOption: true,
         })
         .help()
         .alias('help', 'h')
