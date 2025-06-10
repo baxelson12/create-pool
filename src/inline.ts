@@ -12,24 +12,25 @@ export default async function inline(config: PoolCreationConfig) {
     config.currency1Address
   );
   const hasFlipped = config.currency0Address === sortedC1Address;
+  const configOld = { ...config };
   config.currency0Address = hasFlipped
-    ? config.currency1Address
-    : config.currency0Address;
+    ? configOld.currency1Address
+    : configOld.currency0Address;
   config.currency1Address = hasFlipped
-    ? config.currency0Address
-    : config.currency1Address;
+    ? configOld.currency0Address
+    : configOld.currency1Address;
   config.currency0Decimals = hasFlipped
-    ? config.currency1Decimals
-    : config.currency0Decimals;
+    ? configOld.currency1Decimals
+    : configOld.currency0Decimals;
   config.currency1Decimals = hasFlipped
-    ? config.currency0Decimals
-    : config.currency1Decimals;
+    ? configOld.currency0Decimals
+    : configOld.currency1Decimals;
   config.currency0Price = hasFlipped
-    ? config.currency1Price
-    : config.currency0Price;
+    ? configOld.currency1Price
+    : configOld.currency0Price;
   config.currency1Price = hasFlipped
-    ? config.currency0Price
-    : config.currency1Price;
+    ? configOld.currency0Price
+    : configOld.currency1Price;
   const priceRatio = await calculatePrice(
     config.currency0Price,
     config.currency1Price

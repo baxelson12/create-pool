@@ -140,22 +140,23 @@ export default async function main() {
       config.currency1Address!
     );
     const hasFlipped = config.currency0Address === sortedC1Address;
+    const configOld = { ...config };
     // Move variables based on required sorting
     config.currency0Address = hasFlipped
-      ? config.currency1Address
-      : config.currency0Address;
+      ? configOld.currency1Address
+      : configOld.currency0Address;
     config.currency1Address = hasFlipped
-      ? config.currency0Address
-      : config.currency1Address;
+      ? configOld.currency0Address
+      : configOld.currency1Address;
     config.currency0Decimals = hasFlipped
-      ? config.currency1Decimals
-      : config.currency0Decimals;
+      ? configOld.currency1Decimals
+      : configOld.currency0Decimals;
     config.currency1Decimals = hasFlipped
-      ? config.currency0Decimals
-      : config.currency1Decimals;
+      ? configOld.currency0Decimals
+      : configOld.currency1Decimals;
     config.currency0Price = hasFlipped
-      ? config.currency1Price
-      : config.currency0Price;
+      ? configOld.currency1Price
+      : configOld.currency0Price;
 
     s.stop('Currencies sorted.');
 

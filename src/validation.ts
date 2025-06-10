@@ -35,7 +35,7 @@ export const poolCreationSchema = z.object({
   etherscanRoot: z
     .string()
     .url({ message: 'Please enter a valid block scanner root URL.' }),
-  sqrtPriceX96: z.bigint(),
+  sqrtPriceX96: z.bigint().optional(),
   poolManager: ethAddressSchema,
 });
 
