@@ -55,7 +55,7 @@ export const runFoundryScript = async (config: PoolCreationConfig) => {
     'run(address, (address, address, uint160, uint24, int24, address))';
   const args = [
     config.poolManager,
-    `"(${config.sortedC0Address},${config.sortedC1Address},${config.sqrtPriceX96},${config.fee},${config.tickSpacing},${config.hooksAddress})"`,
+    `"(${config.currency0Address},${config.currency1Address},${config.sqrtPriceX96},${config.fee},${config.tickSpacing},${config.hooksAddress})"`,
   ].join(' ');
 
   const output = execSync(

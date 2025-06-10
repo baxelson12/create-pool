@@ -1,5 +1,7 @@
 import yargs from 'yargs';
-import clackInput from './src/interactive';
+import clackInteractive from './src/interactive';
+import inline from './src/inline';
+import { poolCreationSchema } from './src/validation';
 
 /**
  * Things we need to make this run:
@@ -26,14 +28,12 @@ import clackInput from './src/interactive';
  * - Output created pool address
  */
 
-const sing = () => console.log('🎵 Oy oy oy');
-
 const argv = yargs(process.argv.splice(2))
   .command(
     ['interactive', '$0'],
     'Use interactive parameter collection',
     () => {},
-    clackInput
+    clackInteractive
   )
   .command(
     'inline',
@@ -96,8 +96,19 @@ const argv = yargs(process.argv.splice(2))
         .alias('help', 'h')
         .wrap(process.stdout.columns);
     },
-    sing
+    (val) => inline(poolCreationSchema.parse(val))
   )
+  .check((argv) => {
+    const result = poolCreationSchema.safeParse(argv);
+    if (!result.success) {
+      // Zod's error formatting is excellent for CLIs
+      const errorMessage = result.error.issues
+        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+        .join('\n');
+      throw new Error(errorMessage);
+    }
+    return true; // Return true if validation passes
+  })
   .strict()
   .help('h')
   .parse();

@@ -10,8 +10,6 @@ export const poolCreationSchema = z.object({
   privateKey: z.string().min(1, { message: 'Private key cannot be empty.' }),
   currency0Address: ethAddressSchema,
   currency1Address: ethAddressSchema,
-  sortedC0Address: ethAddressSchema,
-  sortedC1Address: ethAddressSchema,
   currency0Decimals: z
     .number()
     .positive({ message: 'Decimals must be a positive number.' }),

@@ -135,12 +135,28 @@ export default async function main() {
   // --- Processing Steps ---
   try {
     s.start('1. Sorting currencies by address...');
-    const { sortedC0Address, sortedC1Address } = await sortCurrencies(
+    const { sortedC1Address } = await sortCurrencies(
       config.currency0Address!,
       config.currency1Address!
     );
-    config.sortedC0Address = sortedC0Address;
-    config.sortedC1Address = sortedC1Address;
+    const hasFlipped = config.currency0Address === sortedC1Address;
+    // Move variables based on required sorting
+    config.currency0Address = hasFlipped
+      ? config.currency1Address
+      : config.currency0Address;
+    config.currency1Address = hasFlipped
+      ? config.currency0Address
+      : config.currency1Address;
+    config.currency0Decimals = hasFlipped
+      ? config.currency1Decimals
+      : config.currency0Decimals;
+    config.currency1Decimals = hasFlipped
+      ? config.currency0Decimals
+      : config.currency1Decimals;
+    config.currency0Price = hasFlipped
+      ? config.currency1Price
+      : config.currency0Price;
+
     s.stop('Currencies sorted.');
 
     s.start('2. Calculating price ratio...');
