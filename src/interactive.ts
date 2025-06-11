@@ -43,7 +43,7 @@ export default async function main() {
     etherscanRoot: () =>
       p.text({
         message: 'Enter the root URL for block scanner:',
-        placeholder: 'https://etherscan.io',
+        placeholder: 'https://etherscan.io/tx',
         validate: validateWithZod(poolCreationSchema.shape.etherscanRoot),
       }),
     poolManager: () =>
