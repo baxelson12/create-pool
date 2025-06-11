@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js';
 
+Decimal.set({ precision: 50, toExpNeg: -100, toExpPos: 100 });
 const Q96 = 2n ** 96n;
 
 /**
@@ -17,8 +18,6 @@ export function priceToSqrtPriceX96(
   token0Decimals: number,
   token1Decimals: number
 ): bigint {
-  Decimal.set({ precision: 50, toExpNeg: -100, toExpPos: 100 });
-
   const priceRatio = Decimal(price).mul(
     Decimal(10).pow(token1Decimals - token0Decimals)
   );
@@ -39,7 +38,6 @@ export function sqrtPriceX96ToPrice(
   token0Decimals: number,
   token1Decimals: number
 ): string {
-  Decimal.set({ precision: 50, toExpNeg: -100, toExpPos: 100 });
   const sqrtPrice = new Decimal(sqrtPriceX96.toString()).div(Q96.toString());
   const priceRatio = sqrtPrice.pow(2);
   const factor = new Decimal(10).pow(token1Decimals - token0Decimals);
