@@ -7,7 +7,7 @@ import {
 } from './utils/price-to-sqrtX96';
 import { sortAddresses } from './utils/sort-addresses';
 import type { PoolCreationConfig } from './validation';
-import { INITIALIZE_EVENT_ABI } from './constants/events';
+import { parseForgeOutput } from './utils/parse-output';
 
 type SortedCurrencies = {
   sortedC0Address: string;
@@ -67,21 +67,9 @@ export const runFoundryScript = async (config: PoolCreationConfig) => {
     { cwd: './contracts', encoding: 'utf-8' }
   );
 
-  const jsonOutput = JSON.parse(output) as {
-    logs: Log[];
-    receipts: { transactionHash: string }[];
-  };
-  const initializeEventSelector = getEventSelector(INITIALIZE_EVENT_ABI[0]);
-  const log = jsonOutput.logs.find(
-    (log) => log.topics[0] === initializeEventSelector
-  );
-  if (!log)
-    throw new Error('Initialize event log not found in transaction receipt.');
-  const decoded = decodeEventLog({
-    abi: INITIALIZE_EVENT_ABI,
-    data: log.data,
-    topics: log.topics,
-  });
-
-  return { ...decoded.args, hash: jsonOutput.receipts[0]!.transactionHash };
+  const parsed = parseForgeOutput(output);
+  if (!parsed)
+    throw new Error('Failed to parse successful transaction output.');
+  const { transactionHash, decodedLog } = parsed;
+  return { ...decodedLog.args, hash: transactionHash };
 };
