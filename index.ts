@@ -125,17 +125,17 @@ const argv = yargs(process.argv.splice(2))
     },
     (val) => inline(poolCreationSchema.parse(val))
   )
-  .check((argv) => {
-    const result = poolCreationSchema.safeParse(argv);
-    if (!result.success) {
-      // Zod's error formatting is excellent for CLIs
-      const errorMessage = result.error.issues
-        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
-        .join('\n');
-      throw new Error(errorMessage);
-    }
-    return true; // Return true if validation passes
-  })
+  // .check((argv) => {
+  //   const result = poolCreationSchema.safeParse(argv);
+  //   if (!result.success) {
+  //     // Zod's error formatting is excellent for CLIs
+  //     const errorMessage = result.error.issues
+  //       .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+  //       .join('\n');
+  //     throw new Error(errorMessage);
+  //   }
+  //   return true; // Return true if validation passes
+  // })
   .strict()
   .help('h')
   .parse();

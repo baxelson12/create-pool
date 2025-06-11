@@ -157,6 +157,9 @@ export default async function main() {
     config.currency0Price = hasFlipped
       ? configOld.currency1Price
       : configOld.currency0Price;
+    config.currency1Price = hasFlipped
+      ? configOld.currency0Price
+      : configOld.currency1Price;
 
     s.stop('Currencies sorted.');
 
@@ -270,13 +273,13 @@ export default async function main() {
   p.note(`
     --- Review Your Pool Configuration ---
     Wallet Key:     ${color.dim('****' + config.privateKey!.slice(-4))}
-    Token 0 Addr:   ${color.yellow(config.sortedC0Address!)}
-    Token 0 Price:  ${color.yellow(config.currency0Price!)}
-    Token 1 Addr:   ${color.yellow(config.sortedC1Address!)}
-    Token 1 Price:  ${color.yellow(config.currency1Price!)}
-    Pool Fee:       ${color.green(config.fee!)}
-    Tick Spacing:   ${color.green(config.tickSpacing!)}
-    Hooks Address:  ${color.cyan(config.hooksAddress!)}
+    Token 0 Addr:   ${color.yellow(config.currency0Address)}
+    Token 0 Price:  ${color.yellow(config.currency0Price)}
+    Token 1 Addr:   ${color.yellow(config.currency1Price)}
+    Token 1 Price:  ${color.yellow(config.currency1Price)}
+    Pool Fee:       ${color.green(config.fee)}
+    Tick Spacing:   ${color.green(config.tickSpacing)}
+    Hooks Address:  ${color.cyan(config.hooksAddress)}
   `);
 
   const shouldContinue = await p.confirm({
