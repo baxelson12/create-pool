@@ -1,6 +1,7 @@
 import { decodeEventLog, getEventSelector, type Log } from 'viem';
-
 import { INITIALIZE_EVENT_ABI as initializeEventAbi } from '../constants/events';
+
+// ref: https://g.co/gemini/share/da1517531e94
 
 /**
  * A type representing the successful output we want to extract.
@@ -20,19 +21,17 @@ type ParsedForgeOutput = {
 export function parseForgeOutput(
   forgeOutput: string
 ): ParsedForgeOutput | null {
-  // --- Step 2: Handle the multi-line JSON stream ---
   const jsonObjects: any[] = forgeOutput
-    .split('\n') // Split the raw output by lines
+    .split('\n')
     .map((line) => {
       try {
-        return JSON.parse(line); // Try to parse each line as JSON
+        return JSON.parse(line);
       } catch {
-        return null; // If a line is not valid JSON, ignore it
+        return null;
       }
     })
-    .filter(Boolean); // Filter out any null entries
+    .filter(Boolean);
 
-  // --- Step 3: Find the necessary data from the parsed objects ---
   let transactionHash: string | null = null;
   let rawLogs: Log[] | null = null;
 
@@ -40,7 +39,6 @@ export function parseForgeOutput(
     if (obj.tx_hash) {
       transactionHash = obj.tx_hash;
     }
-    // IMPORTANT: The event is in `raw_logs`, not `logs`.
     if (obj.raw_logs) {
       rawLogs = obj.raw_logs;
     }
@@ -55,7 +53,6 @@ export function parseForgeOutput(
     return null;
   }
 
-  // --- Step 4: Find and decode the specific event log ---
   const eventSelector = getEventSelector(initializeEventAbi[0]);
   const initializeLog = rawLogs.find((log) => log.topics[0] === eventSelector);
 

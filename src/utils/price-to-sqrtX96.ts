@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-// The Q96 constant (2^96) as a BigInt
+
 const Q96 = 2n ** 96n;
 
 /**

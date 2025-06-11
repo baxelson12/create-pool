@@ -3,31 +3,6 @@ import clackInteractive from './src/interactive';
 import inline from './src/inline';
 import { poolCreationSchema } from './src/validation';
 
-/**
- * Things we need to make this run:
- * - private key
- * - currency0 (address)
- * - currency1 (address)
- * - currency0price (USD) (current price or starting price)
- * - currency1price (USD) (current price or starting price)
- * - fee (provide standard options, option for other)
- * - tickSpacing (provide standard options, option for other)
- * - hooks (address)
- *
- * Order of operations
- * - Collect the addresses for pair and their respective USD prices
- * - Sort them
- * - Calculate price (sorted c0 / c1)
- * - Run code to get sqrtX96 price
- * - Reverse sqrtX96 and confirm USD price is correct
- * - Show fee options or other
- * - Show tick spacing options or other
- * - Show hooks address prompt (0 address if none)
- * - Confirm information is correct
- * - Run foundry script
- * - Output created pool address
- */
-
 const argv = yargs(process.argv.splice(2))
   .command(
     ['interactive', '$0'],
@@ -125,17 +100,6 @@ const argv = yargs(process.argv.splice(2))
     },
     (val) => inline(poolCreationSchema.parse(val))
   )
-  // .check((argv) => {
-  //   const result = poolCreationSchema.safeParse(argv);
-  //   if (!result.success) {
-  //     // Zod's error formatting is excellent for CLIs
-  //     const errorMessage = result.error.issues
-  //       .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
-  //       .join('\n');
-  //     throw new Error(errorMessage);
-  //   }
-  //   return true; // Return true if validation passes
-  // })
   .strict()
   .help('h')
   .parse();
