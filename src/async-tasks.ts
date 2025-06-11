@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import Decimal from 'decimal.js';
 import { type Log, decodeEventLog, getEventSelector } from 'viem';
 import {
   priceToSqrtPriceX96,
@@ -24,12 +25,13 @@ export const sortCurrencies = async (
 export const calculatePrice = async (
   c0Price: number,
   c1Price: number
-): Promise<number> => {
-  return c0Price / c1Price;
+): Promise<string> => {
+  Decimal.set({ precision: 50, toExpNeg: -100, toExpPos: 100 });
+  return Decimal(c0Price).div(c1Price).toString();
 };
 
 export const getSqrtPriceX96 = async (
-  price: number,
+  price: string,
   token0Decimals: number,
   token1Decimals: number
 ): Promise<bigint> => {
@@ -37,7 +39,7 @@ export const getSqrtPriceX96 = async (
 };
 
 export const reverseAndConfirmPrice = async (
-  originalPriceRatio: number,
+  originalPriceRatio: string,
   sqrtPriceX96: bigint,
   token0Decimals: number,
   token1Decimals: number
@@ -47,7 +49,9 @@ export const reverseAndConfirmPrice = async (
     token0Decimals,
     token1Decimals
   );
-  return Math.abs(originalPriceRatio - inversePriceRatio) < 0.1;
+  return Decimal.abs(Decimal(originalPriceRatio).minus(inversePriceRatio)).lt(
+    0.1
+  );
 };
 
 export const runFoundryScript = async (config: PoolCreationConfig) => {

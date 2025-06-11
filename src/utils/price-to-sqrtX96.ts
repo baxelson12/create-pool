@@ -35,25 +35,24 @@ function sqrt(value: bigint): bigint {
  * @returns The sqrtPriceX96 value as a BigInt.
  */
 export function priceToSqrtPriceX96(
-  price: number,
+  price: string,
   token0Decimals: number,
   token1Decimals: number
 ): bigint {
   // 1. Represent the price as a fraction (numerator/denominator) to handle decimals.
   //    This avoids using floating-point numbers for the core calculation.
-  const priceString = price.toString();
-  const decimalIndex = priceString.indexOf('.');
+  const decimalIndex = price.indexOf('.');
 
   let priceNumerator: bigint;
   let priceDenominator: bigint;
 
   if (decimalIndex === -1) {
     // It's an integer
-    priceNumerator = BigInt(priceString);
+    priceNumerator = BigInt(price);
     priceDenominator = 1n;
   } else {
-    const decimalPlaces = priceString.length - decimalIndex - 1;
-    priceNumerator = BigInt(priceString.replace('.', ''));
+    const decimalPlaces = price.length - decimalIndex - 1;
+    priceNumerator = BigInt(price.replace('.', ''));
     priceDenominator = 10n ** BigInt(decimalPlaces);
   }
 

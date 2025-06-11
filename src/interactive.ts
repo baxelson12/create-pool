@@ -168,7 +168,7 @@ export default async function main() {
       config.currency0Price!,
       config.currency1Price!
     );
-    s.stop(`Price ratio calculated: ${priceRatio.toFixed(4)}`);
+    s.stop(`Price ratio calculated: ${priceRatio}`);
 
     s.start('3. Calculating SqrtPriceX96...');
     const sqrtPriceX96 = await getSqrtPriceX96(
