@@ -4,9 +4,17 @@ import {
   getSqrtPriceX96,
   sortCurrencies,
 } from './async-tasks';
-import type { PoolCreationConfig } from './validation';
+import { type PoolCreationConfig, poolCreationSchema } from './validation';
 
 export default async function inline(config: PoolCreationConfig) {
+  const result = poolCreationSchema.safeParse(config);
+  if (!result.success) {
+    const errorMessage = result.error.issues
+      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+      .join('\n');
+    throw new Error(errorMessage);
+  }
+
   const { sortedC1Address } = await sortCurrencies(
     config.currency0Address,
     config.currency1Address
