@@ -1,4 +1,4 @@
 [submodule "contracts"]
 	path = contracts
-	url = git@github.com:baxelson12/uniswap-v4-tooling.git
-  branch = main
+	url = git@github.com:baxelson12/v4-template.git
+  branch = feat/uniswapv4-tooling 
